@@ -1,0 +1,38 @@
+
+services:
+  eureka-sv:
+    build: eureka-sv
+    mem_limit: 512m
+    ports: 
+      - "8761:8761"
+    networks:
+      - 'homeappliance-network'
+  products-service:
+    build: products-service
+    mem_limit: 512m
+    ports:
+      - "8081:8081"
+    networks:
+      - 'homeappliance-network'
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/products_service
+  sales-service:
+    build: sales-service
+    mem_limit: 512m
+    ports:
+      - "8082:8082"
+    networks:
+      - 'homeappliance-network'
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/sales_service
+  shopcart-service:
+    build: shopcart-service
+    mem_limit: 512m
+    ports:
+      - "8083:8083"
+    networks:
+      - 'homeappliance-network'
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/shopcart_service
+networks:
+  homeappliance-network:

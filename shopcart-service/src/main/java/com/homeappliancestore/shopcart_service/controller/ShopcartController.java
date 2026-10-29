@@ -4,6 +4,7 @@ import com.homeappliancestore.shopcart_service.dto.CartItemDTO;
 import com.homeappliancestore.shopcart_service.dto.ShopcartDTO;
 import com.homeappliancestore.shopcart_service.dto.ShopcartWithProductsDTO;
 import com.homeappliancestore.shopcart_service.service.IShopcartService;
+import jakarta.ws.rs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,5 +44,17 @@ public class ShopcartController {
     public ResponseEntity<ShopcartWithProductsDTO> getShopcartWithProducts(@PathVariable Long id){
         ShopcartWithProductsDTO shopcart = shopcartService.getShopcartWithProducts(id);
         return ResponseEntity.ok(shopcart);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id){
+        shopcartService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}/products/{id_product}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id, @PathVariable Long id_product){
+        shopcartService.deleteProduct(id, id_product);
+        return ResponseEntity.noContent().build();
     }
 }

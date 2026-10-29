@@ -10,6 +10,5 @@ import java.util.List;
 @Builder
 public class ShopcartDTO {
     private Long id;
-    private Double total_price;
-    private List<Long> products;
+    private List<CartItemDTO> products;
 }

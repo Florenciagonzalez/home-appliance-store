@@ -4,10 +4,12 @@ import com.homeappliancestore.shopcart_service.dto.*;
 import com.homeappliancestore.shopcart_service.mapper.ShopcartMapper;
 import com.homeappliancestore.shopcart_service.model.CartItem;
 import com.homeappliancestore.shopcart_service.model.Shopcart;
+import com.homeappliancestore.shopcart_service.repository.ICartItemRepository;
 import com.homeappliancestore.shopcart_service.repository.IProductAPIClient;
 import com.homeappliancestore.shopcart_service.repository.IShopcartRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +22,8 @@ public class ShopcartService implements IShopcartService{
     private IShopcartRepository shopcartRepository;
     @Autowired
     private IProductAPIClient productAPIClient;
+    @Autowired
+    private ICartItemRepository cartItemRepository;
 
 
     @Override
@@ -47,9 +51,6 @@ public class ShopcartService implements IShopcartService{
 
         ProductDTO p = productAPIClient.getProduct(item.getId_product());
 
-        System.out.println("Id del item que creo " + item.getId_product());
-        System.out.println(p);
-        System.out.println("Id del producto " + p.getId_product());
         shopcart.addItem(CartItem.builder()
                 .id_product(p.getId_product())
                 .quantity(item.getQuantity())
@@ -93,5 +94,14 @@ public class ShopcartService implements IShopcartService{
         if (!shopcartRepository.existsById(id)) throw new RuntimeException("El carrito con la id " + id + " no fue encontrado");
 
         shopcartRepository.deleteById(id);
+    }
+
+    @Transactional
+    @Override
+    public void deleteProduct(Long id, Long id_product) {
+        if(!shopcartRepository.existsById(id)) throw new RuntimeException("El carrito con la id " + id + " no fue encontrado");
+        if (!cartItemRepository.existsByShopcartIdAndIdProduct(id, id_product)) throw new RuntimeException("El producto no fue encontrado en el carrito");
+
+        cartItemRepository.deleteByShopcartIdAndIdProduct(id, id_product);
     }
 }

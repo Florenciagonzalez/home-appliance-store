@@ -13,4 +13,5 @@ public interface IShopcartService {
     ShopcartDTO create();
     void addProduct(Long id, CartItemDTO item);
     void delete(Long id);
+    void deleteProduct(Long id, Long id_product);
 }
