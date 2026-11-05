@@ -75,6 +75,7 @@ public class ShopcartService implements IShopcartService{
             ProductDTO product = productsByIds.get(item.getId_product());
 
             CartItemDetailDTO detail = CartItemDetailDTO.builder()
+                    .id_product(item.getId_product())
                     .name(product.getName())
                     .brand(product.getBrand())
                     .unit_price(product.getUnit_price())
