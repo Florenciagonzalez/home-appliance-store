@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ICartItemRepository extends JpaRepository<CartItem, Long> {
-    @Query("select c from CartItem c where c.shopcart.id = :id and c.id_product = :productId")
+    @Query("select (count(c) > 0) from CartItem c where c.shopcart.id = :id and c.id_product = :productId")
     boolean existsByShopcartIdAndIdProduct(@Param("id") Long id, @Param("productId") Long id_product);
 
     @Modifying

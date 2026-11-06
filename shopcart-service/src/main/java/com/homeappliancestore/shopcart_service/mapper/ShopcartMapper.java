@@ -1,5 +1,7 @@
 package com.homeappliancestore.shopcart_service.mapper;
 
+import java.math.BigDecimal;
+
 import com.homeappliancestore.shopcart_service.dto.CartItemDTO;
 import com.homeappliancestore.shopcart_service.dto.CartItemDetailDTO;
 import com.homeappliancestore.shopcart_service.dto.ShopcartDTO;
@@ -18,7 +20,7 @@ public class ShopcartMapper {
                 .build();
     }
 
-    public static ShopcartWithProductsDTO toDTO(Long id, List<CartItemDetailDTO> items, Double total_price){
+    public static ShopcartWithProductsDTO toDTO(Long id, List<CartItemDetailDTO> items, BigDecimal total_price){
         return ShopcartWithProductsDTO.builder()
                 .id(id)
                 .items(items)

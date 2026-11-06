@@ -10,6 +10,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalHandlerException {
 
+    @ExceptionHandler(CartAlreadyPurchasedException.class)
+    public ResponseEntity<ErrorResponse> handleCartAlreadyPurchased(
+            CartAlreadyPurchasedException exception, HttpServletRequest request) {
+        ErrorResponse error = ErrorResponse.builder()
+                .code("CART_ALREADY_PURCHASED")
+                .message(exception.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException exception, HttpServletRequest request){
         ErrorResponse error = ErrorResponse.builder()

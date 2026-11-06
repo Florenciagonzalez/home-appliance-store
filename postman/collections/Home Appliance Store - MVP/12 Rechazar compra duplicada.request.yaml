@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{salesUrl}}/api/sales"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"shopcartId": {{cartId}}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 409", () => pm.response.to.have.status(409));
+      pm.test('Codigo de duplicado', () => pm.expect(pm.response.json().code).to.eql('CART_ALREADY_PURCHASED'));
+    language: text/javascript
+order: 12000

@@ -1,5 +1,7 @@
 package com.homeappliancestore.shopcart_service.dto;
 
+import java.math.BigDecimal;
+
 import lombok.*;
 
 @AllArgsConstructor
@@ -10,7 +12,7 @@ public class ProductDTO {
     private Long id_product;
     private String name;
     private String brand;
-    private Double unit_price;
+    private BigDecimal unit_price;
 
     @Override
     public String toString() {

@@ -33,7 +33,7 @@ public class ProductService implements IProductService{
        Product newProduct = Product.builder()
                .name(p.getName())
                .brand(p.getBrand())
-               .unit_price(p.getUnit_price())
+               .unit_price(p.getUnit_price().setScale(2, java.math.RoundingMode.HALF_UP))
                .build();
 
         return ProductMapper.toDTO(productRepository.save(newProduct));
@@ -47,7 +47,7 @@ public class ProductService implements IProductService{
                 .id_product(id)
                 .name(p.getName())
                 .brand(p.getBrand())
-                .unit_price(p.getUnit_price())
+                .unit_price(p.getUnit_price().setScale(2, java.math.RoundingMode.HALF_UP))
                 .build();
 
         return ProductMapper.toDTO(productRepository.save(updated));
@@ -67,6 +67,6 @@ public class ProductService implements IProductService{
     private void validateProduct(ProductDTO p){
         if (p.getName() == null || p.getName().isBlank()) throw new InvalidOperationException("El nombre del producto es obligatorio");
         if (p.getBrand() == null || p.getBrand().isBlank()) throw new InvalidOperationException("La marca del producto es obligatoria");
-        if (p.getUnit_price() == null || p.getUnit_price() < 0) throw new InvalidOperationException("El precio debe ser mayor a 0");
+        if (p.getUnit_price() == null || p.getUnit_price().signum() <= 0) throw new InvalidOperationException("El precio debe ser mayor a 0");
     }
 }

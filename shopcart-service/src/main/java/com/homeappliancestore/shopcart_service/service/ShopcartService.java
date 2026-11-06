@@ -1,5 +1,9 @@
 package com.homeappliancestore.shopcart_service.service;
 
+import com.homeappliancestore.shopcart_service.exception.InvalidOperationException;
+
+import java.math.BigDecimal;
+
 import com.homeappliancestore.shopcart_service.dto.*;
 import com.homeappliancestore.shopcart_service.exception.ExternalServiceUnavailableException;
 import com.homeappliancestore.shopcart_service.exception.NotFoundException;
@@ -48,9 +52,14 @@ public class ShopcartService implements IShopcartService{
     }
 
     @Override
+    @Transactional
     public void addProduct(Long id, CartItemDTO item) {
+        if (item == null || item.getId_product() == null || item.getId_product() <= 0
+                || item.getQuantity() == null || item.getQuantity() <= 0) {
+            throw new InvalidOperationException("El producto y la cantidad deben ser positivos");
+        }
 
-        Shopcart shopcart = shopcartRepository.findById(id).orElseThrow(() -> new NotFoundException("El carrito con el id" + id + "no fue encontrado"));
+        Shopcart shopcart = shopcartRepository.findByIdForUpdate(id).orElseThrow(() -> new NotFoundException("El carrito con el id" + id + "no fue encontrado"));
 
         try {
             ProductDTO p = productAPIClient.getProduct(item.getId_product());
@@ -61,7 +70,7 @@ public class ShopcartService implements IShopcartService{
             shopcartRepository.save(shopcart);
 
         } catch (FeignException.NotFound exception){
-            throw new NotFoundException("El product con el id " + item.getId_product() + "no fue encontrado");
+            throw new NotFoundException("El producto con el id " + item.getId_product() + "no fue encontrado");
         } catch (FeignException exception){
             throw new ExternalServiceUnavailableException("No se pudo consultar el servicio de productos");
         }
@@ -72,7 +81,7 @@ public class ShopcartService implements IShopcartService{
         Shopcart shopcart = shopcartRepository.findById(id).orElseThrow(() -> new NotFoundException("El carrito con el id"+ id + "no fue encontrado"));
 
         List<Long> id_products = shopcart.getItems().stream().map(CartItem::getId_product).toList();
-        List<ProductDTO> products = new ArrayList<>();
+        List<ProductDTO> products;
         try {
             products = productAPIClient.findAllById(id_products);
         } catch (FeignException exception){
@@ -82,10 +91,13 @@ public class ShopcartService implements IShopcartService{
         Map<Long, ProductDTO> productsByIds = products.stream()
                     .collect(Collectors.toMap(ProductDTO::getId_product, product -> product));
             List<CartItemDetailDTO> details = new ArrayList<>();
-            Double total_price = 0.0;
+            BigDecimal total_price = BigDecimal.ZERO;
 
             for (CartItem item : shopcart.getItems()) {
                 ProductDTO product = productsByIds.get(item.getId_product());
+                if (product == null) {
+                    throw new NotFoundException("El producto con id " + item.getId_product() + " del carrito ya no existe");
+                }
 
                 CartItemDetailDTO detail = CartItemDetailDTO.builder()
                         .id_product(item.getId_product())
@@ -97,7 +109,7 @@ public class ShopcartService implements IShopcartService{
 
                 details.add(detail);
 
-                total_price += product.getUnit_price() * item.getQuantity();
+                total_price = total_price.add(product.getUnit_price().multiply(BigDecimal.valueOf(item.getQuantity())));
             }
 
         return ShopcartMapper.toDTO(shopcart.getId(), details, total_price);

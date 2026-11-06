@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{salesUrl}}/api/sales"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"shopcartId": 9223372036854775807}'
+scripts:
+  - type: afterResponse
+    code: pm.test("HTTP 404", () => pm.response.to.have.status(404));
+    language: text/javascript
+order: 18000

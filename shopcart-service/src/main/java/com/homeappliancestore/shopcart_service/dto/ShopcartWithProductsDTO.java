@@ -1,5 +1,7 @@
 package com.homeappliancestore.shopcart_service.dto;
 
+import java.math.BigDecimal;
+
 import lombok.*;
 
 import java.util.List;
@@ -10,6 +12,6 @@ import java.util.List;
 @Builder
 public class ShopcartWithProductsDTO {
     private Long id;
-    private Double total_price;
+    private BigDecimal total_price;
     private List<CartItemDetailDTO> items;
 }

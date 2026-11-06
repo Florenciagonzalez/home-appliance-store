@@ -7,6 +7,9 @@ import com.homeappliancestore.sales_service.mapper.SaleMapper;
 import com.homeappliancestore.sales_service.model.*;
 import com.homeappliancestore.sales_service.repository.*;
 import feign.FeignException;
+import com.homeappliancestore.sales_service.exception.CartAlreadyPurchasedException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,10 +29,29 @@ public class SaleService implements ISaleService {
     @Transactional
     public SaleDTO create(CreateSaleDTO request) {
         validateRequest(request);
+        if (saleRepository.existsByShopcartId(request.getShopcartId())) {
+            throw new CartAlreadyPurchasedException(request.getShopcartId());
+        }
         ShopcartWithProductsDTO cart = getShopcart(request.getShopcartId());
         validateShopcart(cart);
         Sale sale = buildSale(request.getShopcartId(), cart);
-        return SaleMapper.toDTO(saleRepository.save(sale));
+        return SaleMapper.toDTO(saveSale(sale));
+    }
+
+    private Sale saveSale(Sale sale) {
+        try {
+            return saleRepository.saveAndFlush(sale);
+        } catch (DataIntegrityViolationException exception) {
+            for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+                if (cause instanceof ConstraintViolationException violation
+                        && violation.getConstraintName() != null
+                        && violation.getConstraintName().toLowerCase(java.util.Locale.ROOT)
+                                .contains("uk_sale_shopcart")) {
+                    throw new CartAlreadyPurchasedException(sale.getShopcartId());
+                }
+            }
+            throw exception;
+        }
     }
 
     private void validateRequest(CreateSaleDTO request) {
@@ -41,6 +63,10 @@ public class SaleService implements ISaleService {
     private ShopcartWithProductsDTO getShopcart(Long shopcartId) {
         try {
             return shopcartAPIClient.getShopcartWithProducts(shopcartId);
+        } catch (FeignException.NotFound exception) {
+            throw new NotFoundException("El carrito o uno de sus productos no existe");
+        } catch (FeignException.BadRequest exception) {
+            throw new InvalidOperationException("El carrito no es valido para registrar una venta");
         } catch (FeignException exception){
             throw new ExternalServiceUnavailableException("No se pudo establecer la conexión con el servicio shopcart");
         }

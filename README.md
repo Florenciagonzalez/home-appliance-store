@@ -227,7 +227,7 @@ Los tests actuales de carga de contexto utilizan la configuración de la aplicac
 
 - No incluye pagos, autenticación ni control de stock.
 - Registrar una venta no elimina ni cierra el carrito.
-- No hay prevención de ventas duplicadas para el mismo carrito.
+- Cada carrito puede generar una sola venta. Los intentos repetidos devuelven 409 (`CART_ALREADY_PURCHASED`); una restricción única en sales protege también ante solicitudes simultáneas.
 - El carrito consulta los precios actuales; la venta conserva los precios aplicados al registrarla.
 - Las transacciones son locales a cada microservicio.
 - Quedan como mejoras la documentación OpenAPI, tests de negocio e integración, y Bean Validation.
@@ -242,3 +242,17 @@ Los tests actuales de carga de contexto utilizan la configuración de la aplicac
 | Error de autenticación o conexión a MySQL | Revisar credenciales, puerto y acceso desde Docker |
 | Error al consultar otro servicio | Revisar sus logs y su registro en Eureka |
 | Los cambios no aparecen en Docker | Regenerar el JAR y reconstruir/recrear el contenedor |
+
+### Cambios de persistencia
+
+Los importes de products, shopcart y sales usan `BigDecimal`. Los precios se guardan con dos decimales y redondeo `HALF_UP`; revis? los datos existentes al actualizar una base que antes almacenaba precios con coma flotante.
+
+Al agregar nuevamente un producto al carrito se suma su cantidad. Los carritos antiguos con filas repetidas necesitan una consolidaci?n de datos por separado.
+
+Para verificar en MySQL la restricci?n que impide ventas duplicadas, despu?s de iniciar sales:
+
+```sql
+SHOW INDEX FROM sales_service.sale WHERE Key_name = 'uk_sale_shopcart';
+```
+
+Debe aparecer el ?ndice con `Non_unique = 0`. Si existen ventas duplicadas, resolvelas antes de aplicar la restricci?n; revis? tambi?n los logs de actualizaci?n del esquema.

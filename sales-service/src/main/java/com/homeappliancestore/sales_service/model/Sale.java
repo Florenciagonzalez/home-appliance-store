@@ -10,9 +10,11 @@ import java.util.List;
 @Getter @Setter
 @Builder
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(name = "uk_sale_shopcart", columnNames = "shopcart_id"))
 public class Sale {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "shopcart_id", nullable = false)
     private Long shopcartId;
     private LocalDateTime date;
     @Column(precision = 19, scale = 2)

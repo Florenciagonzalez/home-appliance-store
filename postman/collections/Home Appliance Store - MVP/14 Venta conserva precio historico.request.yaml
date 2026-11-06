@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{salesUrl}}/api/sales/{{saleId}}"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 200", () => pm.response.to.have.status(200));
+      pm.test('Precio historico y total conservados', () => {
+       const sale = pm.response.json();
+       pm.expect(sale.items[0].unit_price).to.eql(10.25);
+       pm.expect(sale.items[0].quantity).to.eql(5);
+       pm.expect(sale.total_price).to.eql(51.25);
+      });
+    language: text/javascript
+order: 14000

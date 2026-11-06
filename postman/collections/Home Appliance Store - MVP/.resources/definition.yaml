@@ -1,0 +1,10 @@
+$kind: collection
+description: Ejecutar en orden con Collection Runner, una iteracion y sin paralelismo. Crea datos nuevos en cada ejecucion y conserva la venta historica. Elimina el producto y los carritos creados. No usar con datos de produccion. No comprueba concurrencia ni fallos de disponibilidad.
+variables:
+  productsUrl: http://localhost:8081
+  shopcartUrl: http://localhost:8083
+  salesUrl: http://localhost:8082
+  productId: ""
+  cartId: ""
+  saleId: ""
+  emptyCartId: ""

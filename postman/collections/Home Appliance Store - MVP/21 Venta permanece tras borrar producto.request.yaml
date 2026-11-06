@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{salesUrl}}/api/sales/{{saleId}}"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 200", () => pm.response.to.have.status(200));
+      pm.test('Historial independiente del catalogo', () => pm.expect(pm.response.json().total_price).to.eql(51.25));
+    language: text/javascript
+order: 21000

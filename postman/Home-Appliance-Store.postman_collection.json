@@ -1,0 +1,710 @@
+{
+  "info": {
+    "name": "Home Appliance Store - MVP",
+    "description": "Ejecutar en orden con Collection Runner, una iteracion y sin paralelismo. Crea datos nuevos en cada ejecucion y conserva la venta historica. Elimina el producto y los carritos creados. No usar con datos de produccion. No comprueba concurrencia ni fallos de disponibilidad.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "productsUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "shopcartUrl",
+      "value": "http://localhost:8083"
+    },
+    {
+      "key": "salesUrl",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "productId",
+      "value": ""
+    },
+    {
+      "key": "cartId",
+      "value": ""
+    },
+    {
+      "key": "saleId",
+      "value": ""
+    },
+    {
+      "key": "emptyCartId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Crear producto",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{productsUrl}}/api/products",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Producto prueba Postman\", \"brand\": \"Demo\", \"unit_price\": 10.25}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) pm.collectionVariables.set(\"productId\", pm.response.json().id_product);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Rechazar nombre vacio",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{productsUrl}}/api/products",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \" \", \"brand\": \"Demo\", \"unit_price\": 10}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Rechazar precio negativo",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{productsUrl}}/api/products",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Invalido\", \"brand\": \"Demo\", \"unit_price\": -1}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Crear carrito",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{shopcartUrl}}/api/shopcarts"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) pm.collectionVariables.set(\"cartId\", pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Rechazar cantidad cero",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{shopcartUrl}}/api/shopcarts/{{cartId}}/addProduct",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id_product\": {{productId}}, \"quantity\": 0}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Rechazar cantidad negativa",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{shopcartUrl}}/api/shopcarts/{{cartId}}/addProduct",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id_product\": {{productId}}, \"quantity\": -1}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Rechazar cantidad nula",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{shopcartUrl}}/api/shopcarts/{{cartId}}/addProduct",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id_product\": {{productId}}, \"quantity\": null}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Agregar dos unidades",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{shopcartUrl}}/api/shopcarts/{{cartId}}/addProduct",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id_product\": {{productId}}, \"quantity\": 2}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Agregar otras tres unidades",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{shopcartUrl}}/api/shopcarts/{{cartId}}/addProduct",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id_product\": {{productId}}, \"quantity\": 3}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Verificar cantidades y total",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{shopcartUrl}}/api/shopcarts/{{cartId}}/products"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test('Una fila, cinco unidades y total 51.25', () => {",
+              " const cart = pm.response.json();",
+              " pm.expect(cart.items).to.have.lengthOf(1);",
+              " pm.expect(cart.items[0].quantity).to.eql(5);",
+              " pm.expect(cart.total_price).to.eql(51.25);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Registrar venta",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{salesUrl}}/api/sales",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"shopcartId\": {{cartId}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.test('Total de venta correcto', () => pm.expect(pm.response.json().total_price).to.eql(51.25));",
+              "if (pm.response.code === 201) pm.collectionVariables.set(\"saleId\", pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 Rechazar compra duplicada",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{salesUrl}}/api/sales",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"shopcartId\": {{cartId}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+              "pm.test('Codigo de duplicado', () => pm.expect(pm.response.json().code).to.eql('CART_ALREADY_PURCHASED'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 Cambiar precio del catalogo",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{productsUrl}}/api/products/id/{{productId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Producto prueba Postman\", \"brand\": \"Demo\", \"unit_price\": 20.5}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 Venta conserva precio historico",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{salesUrl}}/api/sales/{{saleId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test('Precio historico y total conservados', () => {",
+              " const sale = pm.response.json();",
+              " pm.expect(sale.items[0].unit_price).to.eql(10.25);",
+              " pm.expect(sale.items[0].quantity).to.eql(5);",
+              " pm.expect(sale.total_price).to.eql(51.25);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 Crear carrito vacio",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{shopcartUrl}}/api/shopcarts"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) pm.collectionVariables.set(\"emptyCartId\", pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 Rechazar venta vacia",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{salesUrl}}/api/sales",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"shopcartId\": {{emptyCartId}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 Rechazar venta con ID cero",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{salesUrl}}/api/sales",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"shopcartId\": 0}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 Carrito inexistente en sales",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{salesUrl}}/api/sales",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"shopcartId\": 9223372036854775807}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 Eliminar producto de prueba",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{productsUrl}}/api/products/id/{{productId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 Producto eliminado del carrito",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{shopcartUrl}}/api/shopcarts/{{cartId}}/products"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 Venta permanece tras borrar producto",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{salesUrl}}/api/sales/{{saleId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test('Historial independiente del catalogo', () => pm.expect(pm.response.json().total_price).to.eql(51.25));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 Eliminar carrito de prueba",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{shopcartUrl}}/api/shopcarts/{{cartId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "23 Eliminar carrito vacio",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{shopcartUrl}}/api/shopcarts/{{emptyCartId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "24 Venta permanece tras borrar carrito",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{salesUrl}}/api/sales/{{saleId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

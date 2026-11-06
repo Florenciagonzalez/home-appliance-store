@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{productsUrl}}/api/products"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"name": "Producto prueba Postman", "brand": "Demo", "unit_price": 10.25}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 201", () => pm.response.to.have.status(201));
+      if (pm.response.code === 201) pm.collectionVariables.set("productId", pm.response.json().id_product);
+    language: text/javascript
+order: 1000

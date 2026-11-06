@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{salesUrl}}/api/sales"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"shopcartId": {{cartId}}}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("HTTP 201", () => pm.response.to.have.status(201));
+      pm.test('Total de venta correcto', () => pm.expect(pm.response.json().total_price).to.eql(51.25));
+      if (pm.response.code === 201) pm.collectionVariables.set("saleId", pm.response.json().id);
+    language: text/javascript
+order: 11000

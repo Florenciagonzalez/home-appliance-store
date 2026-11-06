@@ -1,5 +1,7 @@
 package com.homeappliancestore.products_service.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,5 +21,6 @@ public class Product {
     private Long id_product;
     private String name;
     private String brand;
-    private Double unit_price;
+    @jakarta.persistence.Column(precision = 19, scale = 2)
+    private BigDecimal unit_price;
 }
